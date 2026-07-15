@@ -1,4 +1,4 @@
-<img width="1836" height="1024" alt="magic-ball" src="https://github.com/user-attachments/assets/5b8b2b44-5682-4b27-9d29-a8b738c490e4" />
+<img width="1836" height="1024" alt="magic-ball" src="https://github.com/user-attachments/assets/951c0c4f-4894-4bea-965f-0141d00d9e0c" />
 
 
 
@@ -8,8 +8,9 @@
 
 
 
-   "Бесплатный открытый социальный 
-  проект с открытым исходным кодом"
+
+
+
 
 
 
