@@ -1,4 +1,5 @@
-<img width="1836" height="1024" alt="magic-ball" src="https://github.com/user-attachments/assets/951c0c4f-4894-4bea-965f-0141d00d9e0c" />
+<img width="900" height="501" alt="magic-ball" src="https://github.com/user-attachments/assets/dd11c1e0-5797-499b-98a4-0ad5542000a3" />
+
 
 
 
