@@ -1,3 +1,12 @@
+<img width="900" height="501" alt="magic-ball 1" src="https://github.com/user-attachments/assets/aecda1f7-f2d9-4563-a0ef-f716986f373d" />
+
+
+
+
+
+
+
+
 
 
 
