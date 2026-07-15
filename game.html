@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0b0f19">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Магический Шар — Ваш умный помощник</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        /* ===== ОСНОВНЫЕ СТИЛИ ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: #0b0f19;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0; color: #fff; overflow-x: hidden;
+            background: radial-gradient(circle at center, #16223f 0%, #070a12 100%);
+            width: 100%; padding: 15px;
+            transition: background 0.5s, color 0.5s;
+        }
+        .theme-toggle {
+            position: fixed; top: 15px; right: 15px;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; font-size: 18px; transition: all 0.3s;
+            z-index: 1000; backdrop-filter: blur(10px); display: flex;
+            align-items: center; justify-content: center;
+        }
+        .theme-toggle:hover { background: rgba(255,255,255,0.2); transform: rotate(30deg); }
+        h1 {
+            margin-bottom: 5px; font-weight: 300; letter-spacing: 1px; text-align: center;
+            font-size: 18px; text-shadow: 0 0 10px rgba(0, 119, 255, 0.5); width: 100%;
+            transition: color 0.5s, text-shadow 0.5s;
+        }
+        .status-bar {
+            font-size: 12px; text-align: center; margin-bottom: 8px; min-height: 24px;
+            width: 100%; max-width: 350px; padding: 4px 12px; border-radius: 12px;
+            background: rgba(255,255,255,0.05); transition: all 0.3s; display: flex;
+            align-items: center; justify-content: center; gap: 6px;
+        }
+        .status-bar .spinner {
+            display: inline-block; width: 12px; height: 12px;
+            border: 2px solid rgba(255,255,255,0.1); border-top-color: #0088ff;
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .progress-container {
+            width: 100%; max-width: 350px; height: 3px;
+            background: rgba(255,255,255,0.05); border-radius: 2px;
+            margin-bottom: 15px; overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%; background: linear-gradient(90deg, #0088ff, #00ddff);
+            transition: width 0.4s ease-out; width: 0%; border-radius: 2px;
+        }
+        .input-container { margin-bottom: 20px; text-align: center; width: 100%; max-width: 350px; }
+        .input-row { display: flex; gap: 8px; align-items: center; }
+        input[type="text"] {
+            padding: 14px 16px; font-size: 16px; border: 2px solid #1f365d; border-radius: 25px;
+            flex: 1; outline: none; background-color: #0d1726; color: white; text-align: center;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s;
+        }
+        input[type="text"]:focus { border-color: #0088ff; box-shadow: 0 0 15px rgba(0, 136, 255, 0.4); }
+        input[type="text"]:disabled { opacity: 0.5; }
+        .btn {
+            background: linear-gradient(135deg, #0088ff, #0052cc); color: #fff; border: none;
+            padding: 14px 18px; font-size: 18px; font-weight: 600; border-radius: 25px;
+            cursor: pointer; transition: all 0.3s; box-shadow: 0 5px 20px rgba(0, 136, 255, 0.3);
+            user-select: none; -webkit-user-select: none;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.5; transform: none; }
+        .btn-mic { background: linear-gradient(135deg, #7a4a7a, #5a2a5a); font-size: 16px; min-width: 50px; }
+        .btn-mic.listening { background: linear-gradient(135deg, #cc3333, #991111); animation: pulse-mic 1.2s infinite; }
+        @keyframes pulse-mic { 0%, 100% { box-shadow: 0 5px 20px rgba(204, 51, 51, 0.3); } 50% { box-shadow: 0 5px 40px rgba(204, 51, 51, 0.8); } }
+        .ball-container { position: relative; width: 280px; height: 280px; cursor: pointer; margin-bottom: 20px; }
+        .ball {
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(100, 180, 255, 0.25) 0%, rgba(26, 86, 219, 0.35) 30%, rgba(11, 40, 105, 0.6) 60%, rgba(4, 17, 48, 0.85) 90%, rgba(0, 0, 0, 0.95) 100%);
+            background-size: 200% 200%;
+            animation: gradientMove 10s ease infinite;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), inset 0 -15px 50px rgba(0, 0, 0, 0.5), inset 0 15px 30px rgba(255, 255, 255, 0.08), 0 0 50px rgba(0, 136, 255, 0.15);
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: box-shadow 0.5s, transform 0.3s;
+        }
+        .ball:hover:not(.shake) { transform: scale(1.02); }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .window {
+            width: 140px; height: 140px;
+            background: radial-gradient(circle, rgba(0, 31, 92, 0.95) 0%, rgba(0, 10, 36, 0.99) 100%);
+            border: 8px solid rgba(4, 16, 41, 0.95); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+            box-shadow: inset 0 0 30px rgba(0,0,0,1), 0 5px 15px rgba(0,0,0,0.6);
+            position: relative; overflow: visible; z-index: 10;
+        }
+        .window::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.3) 100%);
+            border-radius: 50%; pointer-events: none; z-index: 20;
+        }
+        .favicon-logo {
+            width: 80px; height: 80px; object-fit: contain; border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 136, 255, 0.3);
+            z-index: 15; background: rgba(255, 255, 255, 0.05); padding: 5px; transition: opacity 0.3s;
+        }
+        .answer-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 120px; color: #ffffff; font-weight: 900; text-align: center;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 1), 0 0 20px rgba(0, 150, 255, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.9);
+            white-space: pre-wrap; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;
+            z-index: 25; opacity: 0; 
+            transition: opacity 0.5s, font-size 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 10px; line-height: 1.3; max-width: 100%; max-height: 100%; overflow: hidden;
+        }
+        .answer-text.show { opacity: 1; animation: answerAppear 0.8s ease-out; }
+        @keyframes answerAppear {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(-10deg); filter: blur(8px); }
+            50% { filter: blur(2px); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); filter: blur(0); }
+        }
+        @keyframes shake3d {
+            0% { transform: scale(1) translate(0, 0) rotate(0deg); }
+            15% { transform: scale(0.95) translate(-12px, -6px) rotate(-4deg); }
+            30% { transform: scale(1.05) translate(12px, 6px) rotate(4deg); }
+            45% { transform: scale(0.97) translate(-10px, 6px) rotate(-3deg); }
+            60% { transform: scale(1.03) translate(10px, -6px) rotate(3deg); }
+            75% { transform: scale(0.99) translate(-6px, 8px) rotate(-2deg); }
+            100% { transform: scale(1) translate(0, 0) rotate(0deg); }
+        }
+        .shake { animation: shake3d 0.6s ease-in-out; }
+        .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
+        .btn-secondary { background: linear-gradient(135deg, #4a4a7a, #2a2a5a); font-size: 13px; padding: 10px 16px; box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+        .btn-secondary:active { transform: scale(0.95); }
+        .stats {
+            font-size: 11px; color: #445577; text-align: center; margin-top: 8px;
+            padding: 4px 12px; background: rgba(13, 23, 38, 0.3); border-radius: 12px;
+            display: inline-block; transition: color 0.5s, background 0.5s;
+        }
+        .back-button {
+            margin-top: 15px; background: linear-gradient(135deg, #0088ff 0%, #0052cc 100%);
+            color: #fff; border: none; padding: 10px 25px; font-size: 14px; font-weight: 600;
+            border-radius: 25px; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s;
+        }
+        .back-button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0, 136, 255, 0.4); }
+        .history-container {
+            margin-top: 15px; width: 100%; max-width: 350px; max-height: 80px; overflow-y: auto;
+            background: rgba(13, 23, 38, 0.6); border-radius: 15px; padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,0.05); transition: background 0.5s, border-color 0.5s;
+            scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+        .history-container::-webkit-scrollbar { width: 4px; }
+        .history-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .history-item { 
+            font-size: 11px; color: #8899bb; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.03); 
+            display: flex; justify-content: space-between; animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .history-item .q { color: #64ffda; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .history-item .a { color: #aabbdd; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+        #particleCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+        /* ===== АДАПТИВ И СВЕТЛАЯ ТЕМА ===== */
+        body.light-theme {
+            background: radial-gradient(circle at center, #e8edf5 0%, #c8d0e0 100%);
+            color: #1a1a2e;
+        }
+        body.light-theme h1 { color: #1a1a2e; text-shadow: 0 0 10px rgba(0, 119, 255, 0.3); }
+        body.light-theme input[type="text"] { background-color: #ffffff; color: #1a1a2e; border-color: #b0b8c8; }
+        body.light-theme .status-bar { background: rgba(0,0,0,0.05); color: #1a1a2e; }
+        body.light-theme .history-container { background: rgba(255,255,255,0.5); border-color: rgba(0,0,0,0.1); }
+        body.light-theme .history-item .q { color: #0088ff; }
+        body.light-theme .history-item .a { color: #1a1a2e; }
+        body.light-theme .stats { background: rgba(255,255,255,0.5); color: #556688; }
+        body.light-theme .theme-toggle { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); color: #1a1a2e; }
+        body.light-theme .theme-toggle:hover { background: rgba(0,0,0,0.1); }
+        body.light-theme .answer-text { 
+            text-shadow: 0 0 10px rgba(0, 80, 255, 0.8), 0 0 20px rgba(0, 80, 255, 0.5), 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        @media (max-width: 360px) {
+            .ball-container { width: 240px; height: 240px; }
+            .window { width: 120px; height: 120px; }
+            .favicon-logo { width: 65px; height: 65px; }
+            .answer-text { width: 100px; font-size: 14px !important; }
+        }
+        @media (max-width: 320px) { .answer-text { width: 85px; padding: 5px; } }
+        @media (max-width: 400px) { .btn { padding: 12px 14px; font-size: 16px; } .btn-secondary { font-size: 12px; padding: 8px 12px; } }
+        @media (prefers-reduced-motion: reduce) {
+            .ball { animation: none; } .answer-text.show { animation: none; } .shake { animation: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle" onclick="toggleTheme()" title="Сменить тему">🌙</button>
+    <canvas id="particleCanvas"></canvas>
+
+    <h1>Интеллектуальный помощник</h1>
+    <div class="status-bar" id="statusBar">⏳ Проверка подключения...</div>
+    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+
+    <div class="input-container">
+        <div class="input-row">
+            <input type="text" id="question" placeholder="Спроси о чём угодно..." autocomplete="off">
+            <button class="btn btn-mic" id="micBtn" title="Голосовой ввод (Alt+M)">🎤</button>
+            <button class="btn" id="askBtn" title="Ответить (Ctrl+Enter)">→</button>
+        </div>
+    </div>
+
+    <div class="ball-container" onclick="askQuestion()">
+        <div class="ball" id="ball">
+            <div class="window">
+                <img src="favicon.ico" alt="Logo" class="favicon-logo" id="faviconLogo">
+                <div class="answer-text" id="answer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-row">
+        <button class="btn btn-secondary" onclick="clearHistory()" title="Очистить (Esc)">🗑 Очистить</button>
+        <button class="btn btn-secondary" onclick="exportHistory()" title="Скачать историю">💾 Экспорт</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()" title="Загрузить историю">📂 Импорт</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importHistory(this.files[0])">
+        <button class="btn btn-secondary" id="voiceToggle" onclick="toggleVoice()" title="Включить/выключить звук">🔊 Звук</button>
+    </div>
+
+    <div class="history-container" id="historyContainer">
+        <div style="color: #445577; font-size: 11px; text-align: center; margin-bottom: 4px;">📜 История диалога</div>
+        <div id="historyList"></div>
+    </div>
+
+    <div class="stats" id="stats">📊 Вопросов: 0</div>
+    <a href="index.html" class="back-button">← На главную</a>
+
+    <script>
+        // ============================================================
+        // МОДУЛЬ 0: КОНФИГУРАЦИЯ (AppConfig)
+        // ============================================================
+        const AppConfig = {
+            MAX_INPUT_LENGTH: 300,
+            CACHE_TTL_MS: 5 * 60 * 1000,
+            MAX_HISTORY_ITEMS: 50,
+            WIKI_TIMEOUT_MS: 4000,
+            MIN_FONT_SIZE: 11,
+            MAX_TEXT_TRUNCATE: 65,
+            RATE_LIMIT_MS: 1500
+        };
+
+        // ============================================================
+        // МОДУЛЬ 1: УТИЛИТЫ И ЗВУК
+        // ============================================================
+        const Utils = {
+            sanitize: (text) => text.replace(/[<>]/g, '').trim().slice(0, AppConfig.MAX_INPUT_LENGTH),
+            rateLimiter: {
+                lastCall: 0,
+                check(updateFn) {
+                    const now = Date.now();
+                    if (now - this.lastCall < AppConfig.RATE_LIMIT_MS) {
+                        if (updateFn) updateFn('⏳ Подождите секунду...', '#ffaa44');
+                        return false;
+                    }
+                    this.lastCall = now; return true;
+                }
+            },
+            vibrate: (pattern) => { if (navigator.vibrate) navigator.vibrate(pattern); },
+            updateProgress: (percent) => { document.getElementById('progressBar').style.width = percent + '%'; }
+        };
+
+        const SoundEffects = {
+            play: (type) => {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return;
+                    const ctx = new AudioContext();
+                    if (ctx.state === 'suspended') ctx.resume();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    if (type === 'shake') {
+                        osc.frequency.value = 150; osc.type = 'sine'; gain.gain.value = 0.1;
+                        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.1);
+                    } else if (type === 'answer') {
+                        osc.frequency.value = 440; osc.type = 'sine'; gain.gain.value = 0.15;
+                        osc.start(ctx.currentTime); 
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                        osc.stop(ctx.currentTime + 0.3);
+                    }
+                } catch (e) {}
+            }
+        };
+
+        // ============================================================
+        // МОДУЛЬ 2: СОСТОЯНИЕ
+        // ============================================================
+        const AppState = {
+            isOnline: navigator.onLine, isVoiceEnabled: true, isProcessing: false,
+            voicesLoaded: false, selectedVoice: null, recognition: null,
+            conversationContext: { history: [] }, answerCache: new Map(),
+            questionCount: parseInt(localStorage.getItem('questionCount')) || 0
+        };
+
+        const DOM = {
+            statusBar: document.getElementById('statusBar'), progressBar: document.getElementById('progressBar'),
+            ball: document.getElementById('ball'), logo: document.getElementById('faviconLogo'),
+            answer: document.getElementById('answer'), question: document.getElementById('question'),
+            micBtn: document.getElementById('micBtn'), askBtn: document.getElementById('askBtn'),
+            historyList: document.getElementById('historyList'), voiceToggle: document.getElementById('voiceToggle'),
+            stats: document.getElementById('stats')
+        };
+
+        function updateStatus(text, color, showSpinner = false) {
+            const spinner = DOM.statusBar.querySelector('.spinner');
+            if (showSpinner && !spinner) DOM.statusBar.innerHTML = `<span class="spinner"></span> ${text}`;
+            else if (showSpinner && spinner) { spinner.style.display = 'inline-block'; DOM.statusBar.innerHTML = `<span class="spinner"></span> ${text}`; }
+            else DOM.statusBar.textContent = text;
+            DOM.statusBar.style.color = color;
+            DOM.statusBar.style.background = color === '#ff4a4a' ? 'rgba(255, 74, 74, 0.15)' : 
+                                             color === '#64ffda' ? 'rgba(100, 255, 218, 0.15)' : 'rgba(255, 170, 68, 0.15)';
+        }
+
+        window.addEventListener('online', () => { AppState.isOnline = true; updateStatus('🟢 Онлайн: готовлю подробный ответ', '#64ffda'); });
+        window.addEventListener('offline', () => { AppState.isOnline = false; updateStatus('🔴 Офлайн: даю краткий ответ', '#ffaa44'); });
+        updateStatus(AppState.isOnline ? '🟢 Онлайн: готовлю подробный ответ' : '🔴 Офлайн: даю краткий ответ', AppState.isOnline ? '#64ffda' : '#ffaa44');
+
+        function incrementQuestionCount() {
+            AppState.questionCount++;
+            localStorage.setItem('questionCount', AppState.questionCount);
+            DOM.stats.textContent = `📊 Вопросов: ${AppState.questionCount}`;
+        }
+
+        setInterval(() => {
+            const now = Date.now(); let cleaned = 0;
+            for (const [key, data] of AppState.answerCache.entries()) {
+                if (now - data.timestamp > AppConfig.CACHE_TTL_MS) { AppState.answerCache.delete(key); cleaned++; }
+            }
+        }, 300000);
+
+        // ============================================================
+        // МОДУЛЬ 3: БАЗА ЗНАНИЙ
+        // ============================================================
+        const KnowledgeBase = {
+            direct: {
+                'кто создал': { text: 'АНТОН\nКУЗНЕЦОВ', voice: 'Меня создал Антон Анатольевич Кузнецов. Проект Анти ИИ.' },
+                'ты ии': { text: 'НЕТ, Я\nОФЛАЙН', voice: 'Нет, я работаю локально. Твои данные в безопасности.' },
+                'привет': { text: 'ЗДРАВСТВУЙ!', voice: 'Здравствуй! Задай свой вопрос.' }
+            },
+            quick: {
+                'погод': { text: 'СМОТРИ В\nОКНО 🌤️', voice: 'Посмотри в окно, там самая точная погода.' },
+                'врем': { text: 'ВРЕМЯ\nЛЕТИТ ⏰', voice: 'Время неумолимо летит. Цени каждый момент.' },
+                'деньг': { text: 'ДЕНЬГИ\nБУДУТ 💰', voice: 'Финансовый поток откроется, будь готов.' },
+                'счаст': { text: 'СЧАСТЬЕ\nВНУТРИ ТЕБЯ 😊', voice: 'Настоящее счастье всегда внутри тебя.' }
+            },
+            math: {
+                solve: (q) => {
+                    const mathStr = q.replace(/x/g, '*').replace(/х/g, '*').replace(/,/g, '.');
+                    if (/^[\d\s\+\-\*\/\(\)\.]+$/.test(mathStr)) {
+                        try {
+                            const res = Function('"use strict"; return (' + mathStr + ')')();
+                            if (typeof res === 'number' && !isNaN(res) && isFinite(res)) {
+                                return { text: `ОТВЕТ:\n${res}`, voice: `Математический ответ: ${res}` };
+                            }
+                        } catch (e) {}
+                    }
+                    return null;
+                }
+            },
+            categories: {
+                love: {
+                    keywords: ['любов', 'отношен', 'парень', 'девушк', 'замуж', 'жен', 'муж', 'сердц', 'встреч', 'чувств'],
+                    responses: [
+                        { condition: (q) => q.includes('будет'), text: 'ВСЁ БУДЕТ\nХОРОШО ✨', voiceShort: 'Всё наладится.', voiceLong: 'В любви тебя ждут приятные события.' },
+                        { condition: (q) => q.includes('стоит'), text: 'СЛУШАЙ\nСЕРДЦЕ 💖', voiceShort: 'Слушай сердце.', voiceLong: 'В вопросах любви слушай сердце, а не разум.' }
+                    ],
+                    default: { text: 'ЛЮБОВЬ\nБЛИЗКО 💫', voiceShort: 'Любовь близко.', voiceLong: 'Любовь приходит, когда её меньше всего ждёшь.' }
+                },
+                career: {
+                    keywords: ['работ', 'деньг', 'карьер', 'учёб', 'бизнес', 'зарплат', 'увольн', 'проект', 'начальник'],
+                    responses: [
+                        { condition: (q) => q.includes('менять'), text: 'ПОРА\nДЕЙСТВОВАТЬ 🚀', voiceShort: 'Пора действовать.', voiceLong: 'Пришло время принять смелое решение.' },
+                        { condition: (q) => q.includes('сложн'), text: 'ТЫ\nСПРАВИШЬСЯ 💪', voiceShort: 'Ты справишься.', voiceLong: 'Трудности закаляют характер. Не сдавайся.' }
+                    ],
+                    default: { text: 'УСПЕХ\nБЛИЗКО 🎯', voiceShort: 'Успех близко.', voiceLong: 'Твоё упорство приведёт к успеху.' }
+                },
+                health: {
+                    keywords: ['здоров', 'болез', 'устал', 'сил', 'сон', 'спорт', 'диет', 'энерг', 'врач'],
+                    responses: [
+                        { condition: (q) => q.includes('боле'), text: 'БЕРЕГИ\nСЕБЯ 🌿', voiceShort: 'Береги себя.', voiceLong: 'Дай организму полноценный отдых.' }
+                    ],
+                    default: { text: 'СЛУШАЙ\nТЕЛО 🧘', voiceShort: 'Слушай тело.', voiceLong: 'Прислушивайся к организму.' }
+                }
+            }
+        };
+
+        // ============================================================
+        // МОДУЛЬ 4: ЛОГИКА И АДАПТАЦИЯ
+        // ============================================================
+        function wrapLongWords(text, maxLength = 10) {
+            return text.split(' ').map(word => {
+                if (word.length > maxLength) {
+                    const chunks = [];
+                    for (let i = 0; i < word.length; i += maxLength) chunks.push(word.slice(i, i + maxLength));
+                    return chunks.join('\u200B');
+                }
+                return word;
+            }).join(' ');
+        }
+
+        function adjustFontSize(text, element) {
+            const cleanText = text.replace(/\n/g, ' ');
+            const length = cleanText.length;
+            const maxLineLength = Math.max(...text.split('\n').map(line => line.length));
+            let fontSize = 22;
+            
+            if (length > 50 || maxLineLength > 15) fontSize = 14;
+            else if (length > 35 || maxLineLength > 12) fontSize = 16;
+            else if (length > 20 || maxLineLength > 10) fontSize = 18;
+            else if (length > 10 || maxLineLength > 7) fontSize = 20;
+            
+            const words = cleanText.split(' ');
+            const longestWord = Math.max(...words.map(w => w.length));
+            if (longestWord > 12) fontSize = Math.min(fontSize, 16);
+            if (longestWord > 15) fontSize = Math.min(fontSize, 13);
+            
+            fontSize = Math.max(fontSize, AppConfig.MIN_FONT_SIZE);
+            element.style.fontSize = fontSize + 'px';
+            
+            const container = element.parentElement;
+            if (container && (element.scrollWidth > container.clientWidth || element.scrollHeight > container.clientHeight)) {
+                const currentSize = parseFloat(window.getComputedStyle(element).fontSize);
+                if (currentSize <= AppConfig.MIN_FONT_SIZE) {
+                    // ЖЕСТКАЯ ЗАЩИТА: если даже минимальный шрифт не влезает, обрезаем
+                    element.style.overflow = 'hidden';
+                    if (element.textContent.length > AppConfig.MAX_TEXT_TRUNCATE) {
+                        element.textContent = element.textContent.substring(0, AppConfig.MAX_TEXT_TRUNCATE) + '...';
+                    }
+                } else {
+                    element.style.fontSize = (currentSize - 1) + 'px';
+                    setTimeout(() => adjustFontSize(text, element), 50);
+                }
+            }
+        }
+
+        function typeText(element, text, speed = 30) {
+            let index = 0;
+            element.textContent = '';
+            element.classList.add('show');
+            const interval = setInterval(() => {
+                if (index < text.length) {
+                    element.textContent += text[index];
+                    index++;
+                } else {
+                    clearInterval(interval);
+                    SoundEffects.play('answer');
+                }
+            }, speed);
+        }
+
+        function getLocalAnswer(question) {
+            const q = question.toLowerCase().trim();
+            for (const [key, value] of Object.entries({...KnowledgeBase.direct, ...KnowledgeBase.quick})) {
+                if (q.includes(key)) return { text: value.text, voiceShort: value.voice, voiceLong: value.voice };
+            }
+            const mathRes = KnowledgeBase.math.solve(q);
+            if (mathRes) return mathRes;
+
+            let bestCategory = null, maxScore = 0;
+            for (const [catName, category] of Object.entries(KnowledgeBase.categories)) {
+                let score = 0;
+                for (const keyword of category.keywords) { if (q.includes(keyword)) score++; }
+                if (score > maxScore) { maxScore = score; bestCategory = category; }
+            }
+
+            if (bestCategory && maxScore > 0) {
+                for (const rule of bestCategory.responses) {
+                    if (typeof rule.condition === 'function' && rule.condition(q)) return rule;
+                }
+                return bestCategory.default;
+            }
+            const defaults = [
+                { text: 'ДУМАЙ\nХОРОШЕНЬКО 🔮', voiceShort: 'Подумай хорошенько.', voiceLong: 'Подумай над этим вопросом.' },
+                { text: 'ВСЁ В\nТВОИХ РУКАХ 🤲', voiceShort: 'Всё в твоих руках.', voiceLong: 'Ты сам создаёшь свою судьбу.' }
+            ];
+            return defaults[Math.floor(Math.random() * defaults.length)];
+        }
+
+        async function getWikipediaAnswer(question) {
+            try {
+                let cleanQ = question.replace(/[^a-zA-Zа-яА-Я0-9 ]/g, '').trim();
+                if (cleanQ.length < 3) return null;
+
+                const titleParam = encodeURIComponent(cleanQ.replace(/\s+/g, '_'));
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), AppConfig.WIKI_TIMEOUT_MS);
+
+                let response = await fetch(`https://ru.wikipedia.org/api/rest_v1/page/summary/${titleParam}`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                let data = null;
+                if (!response.ok && response.status === 404) {
+                    const searchResponse = await fetch(`https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQ)}&srlimit=1&format=json&origin=*`);
+                    const searchData = await searchResponse.json();
+                    if (searchData.query && searchData.query.search && searchData.query.search.length > 0) {
+                        const bestTitle = searchData.query.search[0].title;
+                        const summaryResponse = await fetch(`https://ru.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle.replace(/\s+/g, '_'))}`);
+                        if (summaryResponse.ok) data = await summaryResponse.json();
+                    }
+                } else if (response.ok) {
+                    data = await response.json();
+                }
+
+                // Умный фолбэк: если данных нет или они слишком короткие
+                if (!data || !data.extract || data.extract.length < 15) return null;
+
+                if (data.type === 'disambiguation') {
+                    return { text: "УТОЧНИТЕ\nЗАПРОС 🔍", voice: "Найдено несколько значений. Пожалуйста, уточните ваш вопрос." };
+                }
+
+                let shortText = data.extract.split('.').slice(0, 2).join('.') + '.';
+                if (shortText.length > 100) shortText = shortText.substring(0, 95) + '...';
+                
+                return { 
+                    text: shortText.toUpperCase().replace(/\. /g, '.\n'), 
+                    voice: data.extract.substring(0, 300) 
+                };
+            } catch (e) { return null; }
+        }
+
+        // ============================================================
+        // МОДУЛЬ 5: ОСНОВНАЯ ФУНКЦИЯ
+        // ============================================================
+        async function askQuestion() {
+            if (AppState.isProcessing) return;
+            const question = Utils.sanitize(DOM.question.value);
+            if (!question) {
+                DOM.question.style.borderColor = '#ff4a4a';
+                setTimeout(() => DOM.question.style.borderColor = '#1f365d', 1000);
+                return;
+            }
+            if (!Utils.rateLimiter.check(updateStatus)) return;
+
+            AppState.isProcessing = true;
+            DOM.askBtn.disabled = true; DOM.question.disabled = true;
+
+            DOM.logo.style.display = 'none';
+            DOM.answer.classList.remove('show');
+            DOM.answer.textContent = '';
+            DOM.ball.classList.add('shake');
+            
+            Utils.vibrate([30, 50, 30]);
+            SoundEffects.play('shake');
+            Utils.updateProgress(30);
+
+            let finalAnswer = null;
+            const cacheKey = question.toLowerCase();
+
+            if (AppState.answerCache.has(cacheKey)) {
+                const cached = AppState.answerCache.get(cacheKey);
+                if (Date.now() - cached.timestamp < AppConfig.CACHE_TTL_MS) {
+                    finalAnswer = cached.answer;
+                    Utils.updateProgress(100);
+                } else { AppState.answerCache.delete(cacheKey); }
+            }
+
+            if (!finalAnswer) {
+                Utils.updateProgress(60);
+                if (AppState.isOnline) {
+                    updateStatus('🌐 Онлайн: ищу подробный ответ...', '#64ffda', true);
+                    finalAnswer = await getWikipediaAnswer(question);
+                    if (!finalAnswer) {
+                        const local = getLocalAnswer(question);
+                        finalAnswer = { text: local.text, voice: local.voiceLong || local.voiceShort || local.text };
+                    }
+                } else {
+                    updateStatus('📡 Офлайн: даю краткий ответ', '#ffaa44');
+                    const local = getLocalAnswer(question);
+                    finalAnswer = { text: local.text, voice: local.voiceShort || local.text };
+                }
+                if (finalAnswer) AppState.answerCache.set(cacheKey, { answer: finalAnswer, timestamp: Date.now() });
+            }
+
+            setTimeout(() => {
+                DOM.ball.classList.remove('shake');
+                Utils.updateProgress(100);
+                
+                const wrappedText = wrapLongWords(finalAnswer.text, 10);
+                adjustFontSize(wrappedText, DOM.answer);
+                
+                if (wrappedText.length < 30) {
+                    DOM.answer.textContent = wrappedText;
+                    DOM.answer.classList.add('show');
+                    SoundEffects.play('answer');
+                } else {
+                    typeText(DOM.answer, wrappedText, 25);
+                }
+
+                const rect = DOM.ball.getBoundingClientRect();
+                particleEffect.burst(rect.left + rect.width/2, rect.top + rect.height/2);
+
+                if (AppState.isVoiceEnabled) speak(finalAnswer.voice);
+
+                AppState.conversationContext.history.push({ q: question, a: finalAnswer.text.replace(/\n/g, ' ') });
+                if (AppState.conversationContext.history.length > AppConfig.MAX_HISTORY_ITEMS) {
+                    AppState.conversationContext.history = AppState.conversationContext.history.slice(-AppConfig.MAX_HISTORY_ITEMS);
+                }
+                saveHistory(); renderHistory();
+                incrementQuestionCount();
+
+                DOM.question.value = '';
+                updateStatus(AppState.isOnline ? '✅ Подробный ответ готов' : '✅ Краткий ответ готов', '#64ffda');
+                AppState.isProcessing = false;
+                DOM.askBtn.disabled = false; DOM.question.disabled = false; DOM.question.focus();
+
+                setTimeout(() => { Utils.updateProgress(0); }, 1000);
+                DOM.ball.style.boxShadow = `0 25px 50px rgba(0,0,0,0.8), 0 0 40px rgba(0, 136, 255, 0.6)`;
+                setTimeout(() => { DOM.ball.style.boxShadow = `0 25px 50px rgba(0,0,0,0.8), 0 0 50px rgba(0, 136, 255, 0.15)`; }, 1000);
+            }, 600);
+        }
+
+        // ============================================================
+        // МОДУЛЬ 6: ГОЛОС, ХРАНИЛИЩЕ, ЧАСТИЦЫ
+        // ============================================================
+        function loadVoices() {
+            if ('speechSynthesis' in window) {
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    AppState.selectedVoice = voices.find(v => v.lang.includes('ru')) || voices.find(v => v.lang.includes('en')) || null;
+                    AppState.voicesLoaded = true;
+                }
+            }
+        }
+        if ('speechSynthesis' in window) { loadVoices(); window.speechSynthesis.onvoiceschanged = loadVoices; }
+
+        function speak(text) {
+            if (!AppState.isVoiceEnabled || !('speechSynthesis' in window)) return;
+            if (!AppState.voicesLoaded) loadVoices();
+            try {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                if (AppState.selectedVoice) utterance.voice = AppState.selectedVoice;
+                utterance.lang = 'ru-RU'; utterance.pitch = 0.95; utterance.rate = AppState.isOnline ? 1.0 : 1.1; utterance.volume = 1.0;
+                window.speechSynthesis.speak(utterance);
+            } catch (e) {}
+        }
+
+        function toggleVoice() {
+            AppState.isVoiceEnabled = !AppState.isVoiceEnabled;
+            DOM.voiceToggle.textContent = AppState.isVoiceEnabled ? '🔊 Звук' : '🔇 Без звука';
+            DOM.voiceToggle.style.opacity = AppState.isVoiceEnabled ? '1' : '0.6';
+            if (!AppState.isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
+
+        function initSpeech() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { DOM.micBtn.style.opacity = '0.4'; DOM.micBtn.title = 'Не поддерживается'; return null; }
+            const rec = new SpeechRecognition();
+            rec.lang = 'ru-RU'; rec.continuous = false; rec.interimResults = true;
+            rec.onstart = () => { DOM.micBtn.classList.add('listening'); DOM.micBtn.textContent = '⏹'; updateStatus('🎤 Слушаю...', '#ffaa44'); };
+            rec.onend = () => { DOM.micBtn.classList.remove('listening'); DOM.micBtn.textContent = '🎤'; if (!AppState.isProcessing) updateStatus(AppState.isOnline ? '🟢 Онлайн' : '🔴 Офлайн', AppState.isOnline ? '#64ffda' : '#ffaa44'); };
+            rec.onerror = (event) => {
+                DOM.micBtn.classList.remove('listening'); DOM.micBtn.textContent = '🎤';
+                const errors = { 'not-allowed': '❌ Доступ запрещён', 'no-speech': '🔇 Не распознано', 'audio-capture': '🎤 Микрофон не найден' };
+                updateStatus(errors[event.error] || '❌ Ошибка', '#ff4a4a');
+                setTimeout(() => { if (!AppState.isProcessing) updateStatus(AppState.isOnline ? '🟢 Онлайн' : '🔴 Офлайн', AppState.isOnline ? '#64ffda' : '#ffaa44'); }, 2500);
+            };
+            rec.onresult = (event) => {
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) { if (event.results[i].isFinal) final += event.results[i][0].transcript; }
+                if (final) { DOM.question.value = Utils.sanitize(final); setTimeout(() => askQuestion(), 300); }
+            };
+            return rec;
+        }
+
+        DOM.micBtn.addEventListener('click', () => {
+            if (!AppState.recognition) return;
+            try { AppState.recognition.isListening ? AppState.recognition.stop() : AppState.recognition.start(); } catch(e) {}
+        });
+
+        function saveHistory() { try { localStorage.setItem('ballHistory', JSON.stringify(AppState.conversationContext.history)); } catch (e) {} }
+        function loadHistory() {
+            try { const saved = localStorage.getItem('ballHistory'); if (saved) { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) AppState.conversationContext.history = parsed.slice(-AppConfig.MAX_HISTORY_ITEMS); } } catch (e) {}
+        }
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        function renderHistory() {
+            const items = AppState.conversationContext.history.slice(-5).reverse();
+            DOM.historyList.innerHTML = items.length ? items.map(item => `<div class="history-item"><span class="q">❓ ${escapeHtml(item.q)}</span><span class="a">→ ${escapeHtml(item.a)}</span></div>`).join('') : '<div style="color:#445577;font-size:11px;text-align:center;">Пока нет вопросов</div>';
+        }
+        function clearHistory() {
+            if (AppState.conversationContext.history.length === 0) { updateStatus('⚠️ Уже пуста', '#ffaa44'); return; }
+            AppState.conversationContext.history = []; localStorage.removeItem('ballHistory'); renderHistory();
+            DOM.answer.classList.remove('show'); DOM.logo.style.display = 'block'; Utils.vibrate(50); updateStatus('🧹 Очищено', '#8899bb');
+        }
+        function exportHistory() {
+            if (AppState.conversationContext.history.length === 0) { updateStatus('⚠️ Пуста', '#ffaa44'); return; }
+            const blob = new Blob([JSON.stringify(AppState.conversationContext.history, null, 2)], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            a.href = url; a.download = `history_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            updateStatus('✅ Экспортировано', '#64ffda');
+        }
+        function importHistory(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data) && data.length > 0) {
+                        AppState.conversationContext.history = data.slice(-AppConfig.MAX_HISTORY_ITEMS); saveHistory(); renderHistory();
+                        updateStatus(`✅ Импортировано: ${data.length}`, '#64ffda'); Utils.vibrate([50, 50, 50]);
+                    } else { throw new Error('Неверный формат'); }
+                } catch (err) { updateStatus('❌ Ошибка импорта', '#ff4a4a'); }
+            };
+            reader.readAsText(file);
+        }
+
+        class ParticleEffect {
+            constructor() {
+                this.canvas = document.getElementById('particleCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = []; this.isAnimating = false;
+                this.resize(); window.addEventListener('resize', () => this.resize());
+            }
+            resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; }
+            burst(x, y, colors = ['#00ddff', '#0088ff', '#ffffff']) {
+                for (let i = 0; i < 35; i++) {
+                    const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 130 + 50;
+                    this.particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1, color: colors[Math.floor(Math.random() * colors.length)], size: Math.random() * 5 + 2 });
+                }
+                if (!this.isAnimating) this.animate();
+            }
+            animate() {
+                this.isAnimating = true; this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                let alive = false;
+                this.particles = this.particles.filter(p => {
+                    p.x += p.vx * 0.016; p.y += p.vy * 0.016; p.vy += 80 * 0.016; p.vx *= 0.99; p.vy *= 0.99; p.life -= 0.012;
+                    alive = alive || p.life > 0;
+                    if (p.life > 0) {
+                        this.ctx.globalAlpha = p.life * 0.9; this.ctx.fillStyle = p.color; this.ctx.shadowColor = p.color; this.ctx.shadowBlur = 10;
+                        this.ctx.beginPath(); this.ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2); this.ctx.fill(); this.ctx.shadowBlur = 0;
+                    }
+                    return p.life > 0;
+                });
+                if (alive) requestAnimationFrame(() => this.animate());
+                else { this.isAnimating = false; this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); this.ctx.globalAlpha = 1; }
+            }
+        }
+        const particleEffect = new ParticleEffect();
+
+        // ============================================================
+        // МОДУЛЬ 7: ИНИЦИАЛИЗАЦИЯ И PWA
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Регистрация Service Worker для PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            }
+
+            AppState.recognition = initSpeech(); 
+            loadHistory(); renderHistory();
+            DOM.stats.textContent = `📊 Вопросов: ${AppState.questionCount}`;
+
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                document.querySelector('.theme-toggle').textContent = '🌞';
+            }
+
+            DOM.askBtn.addEventListener('click', askQuestion);
+            DOM.question.addEventListener('keypress', (e) => { if (e.key === 'Enter') askQuestion(); });
+            DOM.question.addEventListener('focus', function() { if (this.value) this.select(); });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); askQuestion(); }
+                if (e.key === 'Escape' && !e.target.closest('input')) clearHistory();
+                if (e.altKey && e.key === 'm') { e.preventDefault(); DOM.micBtn.click(); }
+            });
+
+            document.addEventListener('dblclick', () => {
+                if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+                else document.body.requestFullscreen?.().catch(() => {});
+            });
+
+            document.addEventListener('click', function initAudio() {
+                if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); }
+                document.removeEventListener('click', initAudio);
+            }, { once: true });
+
+            if ('ontouchstart' in window) setTimeout(() => DOM.question.focus(), 500);
+        });
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            const btn = document.querySelector('.theme-toggle');
+            const isLight = document.body.classList.contains('light-theme');
+            btn.textContent = isLight ? '🌞' : '🌙';
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        }
+    </script>
+</body>
+</html>

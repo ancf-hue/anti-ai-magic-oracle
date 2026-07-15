@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Магический Шар - Узнай Свою Судьбу</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0b0f19 0%, #16223f 100%);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* Favicon вверху по центру */
+        .favicon-container {
+            padding: 15px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .favicon-container img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 136, 255, 0.5);
+        }
+
+        /* Контейнер для изображения и текста */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            padding: 0 20px;
+            flex: 1;
+        }
+
+        /* Изображение магического шара */
+        .magic-ball-img {
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            aspect-ratio: 1;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 
+                        0 0 40px rgba(0, 136, 255, 0.3);
+            animation: float 6s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.3s;
+            object-fit: cover;
+        }
+
+        .magic-ball-img:hover {
+            transform: scale(1.02);
+        }
+
+        .magic-ball-img:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Кнопка ИГРАТЬ */
+        .play-button-container {
+            text-align: center;
+            padding: 15px;
+            width: 100%;
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, #0088ff 0%, #00d4ff 100%);
+            color: #fff;
+            border: none;
+            padding: 18px 50px;
+            font-size: 20px;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0, 136, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .play-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(0, 136, 255, 0.7);
+        }
+
+        .play-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Секция поддержки */
+        .support-section {
+            background: linear-gradient(135deg, rgba(0, 136, 255, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
+            border-top: 2px solid rgba(0, 136, 255, 0.3);
+            padding: 30px 20px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 20px;
+            border-radius: 20px;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .support-title {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #0088ff 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 136, 255, 0.5);
+        }
+
+        .support-subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #8892b0;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .support-description {
+            font-size: 13px;
+            line-height: 1.7;
+            color: #ccd6f6;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .phone-section {
+            background: rgba(0, 136, 255, 0.15);
+            border: 2px solid rgba(0, 136, 255, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .phone-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .phone-number {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 2px;
+            margin: 12px 0;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+            font-family: 'Courier New', monospace;
+        }
+
+        .copy-button {
+            background: linear-gradient(135deg, #0088ff 0%, #0052cc 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 25px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(0, 136, 255, 0.4);
+            width: 100%;
+        }
+
+        .copy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 136, 255, 0.6);
+        }
+
+        .copy-button:active {
+            transform: translateY(0);
+        }
+
+        .benefits {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #64ffda;
+        }
+
+        .thanks {
+            text-align: center;
+            font-size: 18px;
+            color: #ff6b6b;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .catalog-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .catalog-link a {
+            color: #00d4ff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            padding: 8px 15px;
+            border-radius: 10px;
+            background: rgba(0, 212, 255, 0.1);
+            line-height: 1.4;
+        }
+
+        .catalog-link a:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 480px) {
+            .support-title {
+                font-size: 20px;
+            }
+
+            .phone-number {
+                font-size: 20px;
+            }
+
+            .play-button {
+                padding: 15px 40px;
+                font-size: 18px;
+            }
+
+            .benefits {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .magic-ball-img {
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .magic-ball-img {
+                max-width: 260px;
+            }
+
+            .play-button {
+                font-size: 16px;
+                padding: 14px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Favicon вверху по центру -->
+    <div class="favicon-container">
+        <img src="favicon.ico" alt="Magic Ball Icon">
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-content">
+        <!-- Изображение магического шара -->
+        <img src="magic-ball.png" alt="Магический Шар" class="magic-ball-img" onclick="location.href='game.html'">
+
+        <!-- Кнопка ИГРАТЬ -->
+        <div class="play-button-container">
+            <a href="game.html" class="play-button"> ИГРАТЬ</a>
+        </div>
+    </div>
+
+    <!-- Секция поддержки -->
+    <div class="support-section">
+        <h1 class="support-title">🤝 ПОДДЕРЖАТЬ ПРОЕКТ 💙</h1>
+        
+        <p class="support-subtitle">
+            Приложение бесплатное. Было и останется.
+        </p>
+
+        <p class="support-description">
+            Если проект помог вам или вашим близким — можете поддержать разработку добровольным переводом.
+        </p>
+
+        <div class="phone-section">
+            <div class="phone-label">
+                📱 ПЕРЕВОД ПО НОМЕРУ ТЕЛЕФОНА:
+            </div>
+            <div class="phone-number" id="phoneNumber">8-920-227-56-76</div>
+            <button class="copy-button" onclick="copyPhone()">
+                📋 Копировать номер
+            </button>
+        </div>
+
+        <div class="benefits">
+            <div class="benefit-item">
+                ✅ Деньги придут мгновенно
+            </div>
+            <div class="benefit-item">
+                💳 Без комиссии
+            </div>
+            <div class="benefit-item">
+                🔒 Безопасно
+            </div>
+        </div>
+
+        <div class="thanks">
+            ❤️ Спасибо за поддержку!
+        </div>
+
+        <div class="catalog-link">
+            <a href="https://ancf-hue.github.io/" target="_blank">
+                 👉 Каталог бесплатных офлайн-приложений Anti-AI Shield
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function copyPhone() {
+            const phone = "8-920-227-56-76";
+            navigator.clipboard.writeText(phone).then(() => {
+                const btn = document.querySelector('.copy-button');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Скопировано!';
+                btn.style.background = 'linear-gradient(135deg, #00cc66 0%, #009944 100%)';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = 'linear-gradient(135deg, #0088ff 0%, #0052cc 100%)';
+                }, 2000);
+            }).catch(err => {
+                const textArea = document.createElement('textarea');
+                textArea.value = phone;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const btn = document.querySelector('.copy-button');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Скопировано!';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+    </script>
+
+</body>
+</html>
